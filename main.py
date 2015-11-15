@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+logging.basicConfig(level=logging.INFO)
 
 # PySide is my GUI (and your too)
 from PySide import QtCore
