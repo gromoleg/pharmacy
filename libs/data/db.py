@@ -18,12 +18,13 @@ class DbWorker:
             with conn:
                 cursor = conn.cursor()
                 self.init_encryption(cursor)
-                cursor.executescript('''
+                cursor.executescript(u'''
                     CREATE TABLE drugs_data     (id INTEGER PRIMARY KEY, name TEXT, cost NUMERIC, type NUMERIC);
                     CREATE TABLE drugs_types    (id INTEGER PRIMARY KEY, name TEXT);
                     CREATE TABLE drugs_count    (id INTEGER PRIMARY KEY, available NUMERIC, sold_week NUMERIC);
                 ''')
                 conn.commit()
+                cursor.close()
         logging.info(u'DbWorker - init finish')
 
     def loop(self):
@@ -31,15 +32,16 @@ class DbWorker:
         conn = sqlite.connect(self.db_name)
         with conn:
             cursor = conn.cursor()
+            self.init_encryption(cursor)
             while True:
                 task = self.tasks.get()
                 if task is None:
                     return
                 task_type, sql = task
-                if task_type == u'read':
+                if task_type == u'write':
                     cursor.executescript(sql)
                     conn.commit()
-                elif task_type == u'write':
+                elif task_type == u'read':
                     cursor.execute(sql)
                     conn.commit()
                     self.results.put(cursor.fetchall())
